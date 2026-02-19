@@ -5,6 +5,7 @@ import { Player } from './player/Player';
 import { CombatSystem } from './combat/CombatSystem';
 import { createTerrain } from './world/WorldMap';
 import { HUD } from './ui/HUD';
+import { TouchControls } from './ui/TouchControls';
 
 // ---- Setup ----
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -53,6 +54,9 @@ const cameraCtrl = new CameraController(window.innerWidth / window.innerHeight);
 
 // ---- Input ----
 const input = new InputManager();
+
+// ---- Touch Controls (mobile) ----
+new TouchControls(input);
 
 // ---- Combat ----
 const combat = new CombatSystem(scene);

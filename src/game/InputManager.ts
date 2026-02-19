@@ -32,6 +32,21 @@ export class InputManager {
     return false;
   }
 
+  /** Simulate holding a key (for virtual joystick). */
+  setHeld(key: string, down: boolean): void {
+    if (down) {
+      this.held.add(key);
+    } else {
+      this.held.delete(key);
+      this.consumed.delete(key);
+    }
+  }
+
+  /** Simulate a single key press (for virtual buttons). */
+  triggerPress(key: string): void {
+    this.justPressed.add(key);
+  }
+
   /** Call at end of each frame. */
   endFrame(): void {
     this.justPressed.clear();
