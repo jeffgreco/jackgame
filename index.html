@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Castles and Kings</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    canvas { display: block; }
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+    }
+    #health-bar-container {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 200px;
+      height: 24px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid #888;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    #health-bar {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, #e44, #b22);
+      transition: width 0.3s ease;
+    }
+    #health-text {
+      position: absolute;
+      top: 20px;
+      left: 230px;
+      font-size: 16px;
+      text-shadow: 1px 1px 2px #000;
+    }
+    #weapon-indicator {
+      position: absolute;
+      top: 52px;
+      left: 20px;
+      font-size: 14px;
+      text-shadow: 1px 1px 2px #000;
+    }
+    #weapon-indicator .key {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 3px;
+      padding: 1px 6px;
+      margin: 0 2px;
+      font-size: 12px;
+    }
+    #damage-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 0, 0, 0.3);
+      opacity: 0;
+      transition: opacity 0.1s ease;
+      pointer-events: none;
+    }
+    #kill-counter {
+      position: absolute;
+      top: 80px;
+      left: 20px;
+      font-size: 14px;
+      text-shadow: 1px 1px 2px #000;
+    }
+    #controls-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      text-shadow: 1px 1px 2px #000;
+      opacity: 0.7;
+      text-align: center;
+    }
+    #controls-hint .key {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 3px;
+      padding: 1px 6px;
+      margin: 0 2px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div id="health-bar-container"><div id="health-bar"></div></div>
+    <div id="health-text">100 / 100</div>
+    <div id="weapon-indicator">
+      <span class="key">A</span> Sword &nbsp;
+      <span class="key">B</span> Bow
+    </div>
+    <div id="kill-counter">Defeated: 0</div>
+    <div id="damage-flash"></div>
+    <div id="controls-hint">
+      <span class="key">W</span><span class="key">Q</span><span class="key">S</span><span class="key">D</span> / Arrows &mdash; Move &nbsp;&nbsp;
+      <span class="key">A</span> Sword &nbsp;&nbsp;
+      <span class="key">B</span> Bow
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
