@@ -4,6 +4,7 @@ import { CameraController } from './camera/CameraController';
 import { Player } from './player/Player';
 import { CombatSystem } from './combat/CombatSystem';
 import { createTerrain } from './world/WorldMap';
+import { ResourceSystem } from './world/ResourceNode';
 import { HUD } from './ui/HUD';
 import { TouchControls } from './ui/TouchControls';
 
@@ -58,6 +59,10 @@ const input = new InputManager();
 // ---- Touch Controls (mobile) ----
 new TouchControls(input);
 
+// ---- Resources ----
+const resources = new ResourceSystem(scene);
+resources.spawnInitial();
+
 // ---- Combat ----
 const combat = new CombatSystem(scene);
 
@@ -74,6 +79,11 @@ const hudEl = document.getElementById('hud')!;
 // ---- Game state ----
 type GameScreen = 'title' | 'playing' | 'gameover';
 let screen: GameScreen = 'title';
+
+resources.onCollect = () => {
+  hud.updateResources(resources.inventory);
+  hud.flashPickup();
+};
 
 combat.onKill = () => {
   kills++;
@@ -153,11 +163,15 @@ function resetGame(): void {
   combat.enemies.length = 0;
   combat.arrows.length = 0;
 
+  // Reset resources
+  resources.reset();
+
   // Reset counters
   kills = 0;
   spawnTimer = 2;
   hud.updateHealth(player.health, player.maxHealth);
   hud.updateKills(0);
+  hud.updateResources(resources.inventory);
 }
 
 // ---- Button handlers ----
@@ -182,6 +196,7 @@ function gameLoop(now: number): void {
     // Update
     player.update(input, dt);
     combat.update(player, dt);
+    resources.update(player.group.position, dt);
   }
 
   cameraCtrl.update(player.group.position, dt);

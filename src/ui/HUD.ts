@@ -1,3 +1,12 @@
+import type { ResourceType } from '../world/ResourceNode';
+
+const RESOURCE_COLORS: Record<ResourceType, string> = {
+  wood: '#8B5E3C',
+  stone: '#888',
+  iron: '#99a',
+  gold: '#da2',
+};
+
 /**
  * HUD manager that updates the HTML overlay elements.
  */
@@ -6,13 +15,19 @@ export class HUD {
   private healthText: HTMLElement;
   private killCounter: HTMLElement;
   private damageFlash: HTMLElement;
+  private pickupFlash: HTMLElement;
+  private resourceBar: HTMLElement;
   private flashTimeout: ReturnType<typeof setTimeout> | null = null;
+  private pickupTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.healthBar = document.getElementById('health-bar')!;
     this.healthText = document.getElementById('health-text')!;
     this.killCounter = document.getElementById('kill-counter')!;
     this.damageFlash = document.getElementById('damage-flash')!;
+    this.pickupFlash = document.getElementById('pickup-flash')!;
+    this.resourceBar = document.getElementById('resource-bar')!;
+    this.updateResources({ wood: 0, stone: 0, iron: 0, gold: 0 });
   }
 
   updateHealth(current: number, max: number): void {
@@ -40,5 +55,20 @@ export class HUD {
     this.flashTimeout = setTimeout(() => {
       this.damageFlash.style.opacity = '0';
     }, 150);
+  }
+
+  updateResources(inventory: Record<ResourceType, number>): void {
+    const types: ResourceType[] = ['wood', 'stone', 'iron', 'gold'];
+    this.resourceBar.innerHTML = types
+      .map(t => `<span class="res"><span class="dot" style="background:${RESOURCE_COLORS[t]}"></span>${inventory[t]}</span>`)
+      .join('');
+  }
+
+  flashPickup(): void {
+    this.pickupFlash.style.opacity = '1';
+    if (this.pickupTimeout) clearTimeout(this.pickupTimeout);
+    this.pickupTimeout = setTimeout(() => {
+      this.pickupFlash.style.opacity = '0';
+    }, 120);
   }
 }
