@@ -65,15 +65,30 @@ const combat = new CombatSystem(scene);
 const hud = new HUD();
 let kills = 0;
 
+// ---- Screen elements ----
+const titleScreen = document.getElementById('title-screen')!;
+const gameoverScreen = document.getElementById('gameover-screen')!;
+const gameoverStats = document.getElementById('gameover-stats')!;
+const hudEl = document.getElementById('hud')!;
+
+// ---- Game state ----
+type GameScreen = 'title' | 'playing' | 'gameover';
+let screen: GameScreen = 'title';
+
 combat.onKill = () => {
   kills++;
   hud.updateKills(kills);
 };
 
 combat.onPlayerHit = (damage: number) => {
+  if (screen !== 'playing') return;
   player.takeDamage(damage);
   hud.updateHealth(player.health, player.maxHealth);
   hud.flashDamage();
+
+  if (player.health <= 0) {
+    showGameOver();
+  }
 };
 
 // ---- Enemy Spawning ----
@@ -107,6 +122,48 @@ function updateSunTarget(): void {
   sunLight.target.updateMatrixWorld();
 }
 
+// ---- Screen transitions ----
+function startGame(): void {
+  screen = 'playing';
+  titleScreen.style.display = 'none';
+  gameoverScreen.style.display = 'none';
+  hudEl.style.display = '';
+  resetGame();
+}
+
+function showGameOver(): void {
+  screen = 'gameover';
+  gameoverStats.textContent = `Enemies defeated: ${kills}`;
+  gameoverScreen.style.display = 'flex';
+}
+
+function resetGame(): void {
+  // Reset player
+  player.health = player.maxHealth;
+  player.group.position.set(0, 0, 0);
+  player.group.rotation.set(0, 0, 0);
+
+  // Clear all enemies and arrows
+  for (const enemy of combat.enemies) {
+    scene.remove(enemy.mesh);
+  }
+  for (const arrow of combat.arrows) {
+    scene.remove(arrow.mesh);
+  }
+  combat.enemies.length = 0;
+  combat.arrows.length = 0;
+
+  // Reset counters
+  kills = 0;
+  spawnTimer = 2;
+  hud.updateHealth(player.health, player.maxHealth);
+  hud.updateKills(0);
+}
+
+// ---- Button handlers ----
+document.getElementById('start-btn')!.addEventListener('click', startGame);
+document.getElementById('restart-btn')!.addEventListener('click', startGame);
+
 // ---- Game Loop ----
 let lastTime = performance.now();
 
@@ -114,16 +171,19 @@ function gameLoop(now: number): void {
   const dt = Math.min((now - lastTime) / 1000, 0.05); // cap delta for tab-away
   lastTime = now;
 
-  // Spawn enemies
-  spawnTimer -= dt;
-  if (spawnTimer <= 0 && combat.aliveEnemyCount < MAX_ENEMIES) {
-    spawnEnemyNearPlayer();
-    spawnTimer = SPAWN_INTERVAL;
+  if (screen === 'playing') {
+    // Spawn enemies
+    spawnTimer -= dt;
+    if (spawnTimer <= 0 && combat.aliveEnemyCount < MAX_ENEMIES) {
+      spawnEnemyNearPlayer();
+      spawnTimer = SPAWN_INTERVAL;
+    }
+
+    // Update
+    player.update(input, dt);
+    combat.update(player, dt);
   }
 
-  // Update
-  player.update(input, dt);
-  combat.update(player, dt);
   cameraCtrl.update(player.group.position, dt);
   updateSunTarget();
 
@@ -141,7 +201,5 @@ window.addEventListener('resize', () => {
   cameraCtrl.resize(window.innerWidth / window.innerHeight);
 });
 
-// ---- Start ----
-hud.updateHealth(player.health, player.maxHealth);
-hud.updateKills(0);
+// ---- Start render loop (title screen is shown, game waits for click) ----
 requestAnimationFrame(gameLoop);
