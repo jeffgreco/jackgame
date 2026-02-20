@@ -76,6 +76,37 @@
       font-size: 14px;
       text-shadow: 1px 1px 2px #000;
     }
+    #resource-bar {
+      position: absolute;
+      top: 100px;
+      left: 20px;
+      font-size: 13px;
+      text-shadow: 1px 1px 2px #000;
+      display: flex;
+      gap: 12px;
+    }
+    #resource-bar .res {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    #resource-bar .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+    #pickup-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 215, 0, 0.15);
+      opacity: 0;
+      transition: opacity 0.1s ease;
+      pointer-events: none;
+    }
     #controls-hint {
       position: absolute;
       bottom: 20px;
@@ -208,7 +239,9 @@
       <span class="key">B</span> Bow
     </div>
     <div id="kill-counter">Defeated: 0</div>
+    <div id="resource-bar"></div>
     <div id="damage-flash"></div>
+    <div id="pickup-flash"></div>
     <div id="controls-hint">
       <span class="key">W</span><span class="key">Q</span><span class="key">S</span><span class="key">D</span> / Arrows &mdash; Move &nbsp;&nbsp;
       <span class="key">A</span> Sword &nbsp;&nbsp;
