@@ -95,10 +95,112 @@
       margin: 0 2px;
       font-size: 11px;
     }
+
+    /* Title screen */
+    #title-screen {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 200;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+      text-align: center;
+    }
+    #title-screen h1 {
+      font-size: 48px;
+      margin-bottom: 8px;
+      text-shadow: 2px 2px 6px #000;
+      letter-spacing: 2px;
+    }
+    #title-screen .subtitle {
+      font-size: 16px;
+      opacity: 0.7;
+      margin-bottom: 40px;
+    }
+    #title-screen .start-btn {
+      padding: 14px 48px;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+    #title-screen .start-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    #title-screen .lore {
+      margin-top: 32px;
+      font-size: 13px;
+      opacity: 0.5;
+      max-width: 340px;
+      line-height: 1.5;
+    }
+
+    /* Game over screen */
+    #gameover-screen {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 200;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+      text-align: center;
+    }
+    #gameover-screen h1 {
+      font-size: 42px;
+      color: #e44;
+      margin-bottom: 12px;
+      text-shadow: 2px 2px 6px #000;
+    }
+    #gameover-screen .stats {
+      font-size: 18px;
+      margin-bottom: 32px;
+      opacity: 0.8;
+    }
+    #gameover-screen .restart-btn {
+      padding: 14px 48px;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+    #gameover-screen .restart-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body>
-  <div id="hud">
+  <div id="title-screen">
+    <h1>Castles and Kings</h1>
+    <div class="subtitle">A Knight's Quest</div>
+    <button class="start-btn" id="start-btn">Begin</button>
+    <div class="lore">You are Bob, a knight of Featherhood village.<br>The king has been taken. Only you can save him.</div>
+  </div>
+
+  <div id="gameover-screen">
+    <h1>Fallen in Battle</h1>
+    <div class="stats" id="gameover-stats">Enemies defeated: 0</div>
+    <button class="restart-btn" id="restart-btn">Try Again</button>
+  </div>
+
+  <div id="hud" style="display:none;">
     <div id="health-bar-container"><div id="health-bar"></div></div>
     <div id="health-text">100 / 100</div>
     <div id="weapon-indicator">
