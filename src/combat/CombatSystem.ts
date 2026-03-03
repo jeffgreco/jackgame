@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Player } from '../player/Player';
 import { Enemy } from './Enemy';
 import { Arrow } from './Arrow';
+import type { ShelterSystem } from '../world/Shelter';
 
 const SWORD_HIT_RADIUS = 1.2;
 const SWORD_DAMAGE = 15;
@@ -11,6 +12,8 @@ const ARROW_DAMAGE = 20;
 export class CombatSystem {
   enemies: Enemy[] = [];
   arrows: Arrow[] = [];
+  swordDamageBonus = 0;
+  arrowDamageBonus = 0;
   private scene: THREE.Scene;
   onKill?: () => void;
   onPlayerHit?: (damage: number) => void;
@@ -25,7 +28,9 @@ export class CombatSystem {
     this.scene.add(enemy.mesh);
   }
 
-  update(player: Player, dt: number): void {
+  update(player: Player, dt: number, shelters?: ShelterSystem): void {
+    const playerSafe = shelters?.playerInShelter ?? false;
+
     // Fire bow
     if (player.fireBow) {
       const arrow = new Arrow(
@@ -45,7 +50,7 @@ export class CombatSystem {
           if (enemy.isDead) continue;
           const dist = arrow.mesh.position.distanceTo(enemy.mesh.position);
           if (dist < ARROW_HIT_RADIUS) {
-            enemy.takeDamage(ARROW_DAMAGE);
+            enemy.takeDamage(ARROW_DAMAGE + this.arrowDamageBonus);
             arrow.isDone = true;
             if (enemy.isDead) this.onKill?.();
             break;
@@ -70,7 +75,7 @@ export class CombatSystem {
         if (enemy.isDead) continue;
         const dist = hitCenter.distanceTo(enemy.mesh.position);
         if (dist < SWORD_HIT_RADIUS) {
-          enemy.takeDamage(SWORD_DAMAGE);
+          enemy.takeDamage(SWORD_DAMAGE + this.swordDamageBonus);
           if (enemy.isDead) this.onKill?.();
         }
       }
@@ -78,7 +83,9 @@ export class CombatSystem {
 
     // Update enemies and check their attacks
     for (const enemy of this.enemies) {
-      const result = enemy.update(player.group.position, dt);
+      // If player is in shelter, enemies stop chasing
+      const chaseTarget = playerSafe ? null : player.group.position;
+      const result = enemy.update(chaseTarget ?? player.group.position, dt, playerSafe);
       if (result.didAttack) {
         this.onPlayerHit?.(Enemy.ATTACK_DAMAGE);
       }

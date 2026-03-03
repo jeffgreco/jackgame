@@ -107,6 +107,75 @@
       transition: opacity 0.1s ease;
       pointer-events: none;
     }
+    /* Shelter panel */
+    #shelter-panel {
+      position: absolute;
+      top: 50%;
+      right: 30px;
+      transform: translateY(-50%);
+      width: 240px;
+      background: rgba(20, 15, 10, 0.85);
+      border: 2px solid rgba(180, 140, 80, 0.5);
+      border-radius: 8px;
+      padding: 16px;
+      pointer-events: auto;
+      display: none;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #eee;
+    }
+    #shelter-panel h2 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #dda;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    #shelter-panel .safe-label {
+      text-align: center;
+      font-size: 12px;
+      color: #8cf;
+      margin-bottom: 12px;
+    }
+    #shelter-panel .upgrade-btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      color: #eee;
+      cursor: pointer;
+      font-size: 13px;
+      text-align: left;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    #shelter-panel .upgrade-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.18);
+    }
+    #shelter-panel .upgrade-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    #shelter-panel .upgrade-btn .cost {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+    #shelter-panel .upgrade-btn.done {
+      border-color: rgba(100, 200, 100, 0.4);
+      opacity: 0.5;
+    }
+    #shelter-indicator {
+      position: absolute;
+      top: 125px;
+      left: 20px;
+      font-size: 13px;
+      color: #8cf;
+      text-shadow: 1px 1px 2px #000;
+      display: none;
+    }
     #controls-hint {
       position: absolute;
       bottom: 20px;
@@ -240,8 +309,14 @@
     </div>
     <div id="kill-counter">Defeated: 0</div>
     <div id="resource-bar"></div>
+    <div id="shelter-indicator">Safe Zone</div>
     <div id="damage-flash"></div>
     <div id="pickup-flash"></div>
+    <div id="shelter-panel">
+      <h2>Shelter</h2>
+      <div class="safe-label">Enemies cannot reach you here</div>
+      <div id="shelter-upgrades"></div>
+    </div>
     <div id="controls-hint">
       <span class="key">W</span><span class="key">Q</span><span class="key">S</span><span class="key">D</span> / Arrows &mdash; Move &nbsp;&nbsp;
       <span class="key">A</span> Sword &nbsp;&nbsp;
