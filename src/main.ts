@@ -5,8 +5,10 @@ import { Player } from './player/Player';
 import { CombatSystem } from './combat/CombatSystem';
 import { createTerrain } from './world/WorldMap';
 import { ResourceSystem } from './world/ResourceNode';
-import { HUD } from './ui/HUD';
+import { ShelterSystem } from './world/Shelter';
+import { HUD, type UpgradeDef } from './ui/HUD';
 import { TouchControls } from './ui/TouchControls';
+import type { ResourceType } from './world/ResourceNode';
 
 // ---- Setup ----
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -20,7 +22,7 @@ document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); // Sky blue
-scene.fog = new THREE.Fog(0x87CEEB, 30, 60);
+scene.fog = new THREE.Fog(0x87CEEB, 40, 90);
 
 // ---- Lighting ----
 const ambientLight = new THREE.AmbientLight(0x8899bb, 0.6);
@@ -30,12 +32,12 @@ const sunLight = new THREE.DirectionalLight(0xffeedd, 1.2);
 sunLight.position.set(10, 20, 10);
 sunLight.castShadow = true;
 sunLight.shadow.mapSize.set(2048, 2048);
-sunLight.shadow.camera.left = -25;
-sunLight.shadow.camera.right = 25;
-sunLight.shadow.camera.top = 25;
-sunLight.shadow.camera.bottom = -25;
+sunLight.shadow.camera.left = -30;
+sunLight.shadow.camera.right = 30;
+sunLight.shadow.camera.top = 30;
+sunLight.shadow.camera.bottom = -30;
 sunLight.shadow.camera.near = 1;
-sunLight.shadow.camera.far = 50;
+sunLight.shadow.camera.far = 60;
 sunLight.shadow.bias = -0.002;
 scene.add(sunLight);
 
@@ -63,12 +65,103 @@ new TouchControls(input);
 const resources = new ResourceSystem(scene);
 resources.spawnInitial();
 
+// ---- Shelters ----
+const shelters = new ShelterSystem(scene);
+shelters.spawnShelters();
+
 // ---- Combat ----
 const combat = new CombatSystem(scene);
 
 // ---- HUD ----
 const hud = new HUD();
 let kills = 0;
+
+// ---- Upgrades ----
+let swordDamageBonus = 0;
+let arrowDamageBonus = 0;
+let maxHealthBonus = 0;
+let healAvailable = true;
+
+function getUpgrades(): UpgradeDef[] {
+  return [
+    {
+      id: 'sharpen',
+      name: 'Sharpen Sword',
+      description: '+5 sword damage',
+      cost: { iron: 2, stone: 1 },
+      applied: swordDamageBonus >= 10, // max 2 applications
+    },
+    {
+      id: 'fletch',
+      name: 'Better Arrows',
+      description: '+5 arrow damage',
+      cost: { wood: 3, iron: 1 },
+      applied: arrowDamageBonus >= 10,
+    },
+    {
+      id: 'reinforce',
+      name: 'Reinforce Armor',
+      description: '+25 max health',
+      cost: { iron: 3, stone: 2 },
+      applied: maxHealthBonus >= 50,
+    },
+    {
+      id: 'heal',
+      name: 'Rest & Heal',
+      description: 'Restore full health',
+      cost: { wood: 1 },
+      applied: !healAvailable,
+    },
+  ];
+}
+
+function applyUpgrade(id: string): void {
+  const inv = resources.inventory;
+
+  const upgrade = getUpgrades().find(u => u.id === id);
+  if (!upgrade || upgrade.applied) return;
+
+  // Check cost
+  for (const [res, amt] of Object.entries(upgrade.cost)) {
+    if (inv[res as ResourceType] < (amt as number)) return;
+  }
+
+  // Deduct
+  for (const [res, amt] of Object.entries(upgrade.cost)) {
+    inv[res as ResourceType] -= amt as number;
+  }
+
+  // Apply effect
+  switch (id) {
+    case 'sharpen':
+      swordDamageBonus += 5;
+      combat.swordDamageBonus = swordDamageBonus;
+      break;
+    case 'fletch':
+      arrowDamageBonus += 5;
+      combat.arrowDamageBonus = arrowDamageBonus;
+      break;
+    case 'reinforce':
+      maxHealthBonus += 25;
+      player.maxHealth = 100 + maxHealthBonus;
+      player.health = Math.min(player.health, player.maxHealth);
+      hud.updateHealth(player.health, player.maxHealth);
+      break;
+    case 'heal':
+      player.health = player.maxHealth;
+      hud.updateHealth(player.health, player.maxHealth);
+      healAvailable = false;
+      // Restore heal after 60 seconds
+      setTimeout(() => { healAvailable = true; }, 60000);
+      break;
+  }
+
+  hud.updateResources(inv);
+  // Re-render the upgrade panel
+  hud.renderUpgrades(getUpgrades(), inv);
+}
+
+hud.onUpgrade = applyUpgrade;
 
 // ---- Screen elements ----
 const titleScreen = document.getElementById('title-screen')!;
@@ -83,6 +176,18 @@ let screen: GameScreen = 'title';
 resources.onCollect = () => {
   hud.updateResources(resources.inventory);
   hud.flashPickup();
+  // Update shelter panel if visible
+  if (shelters.playerInShelter) {
+    hud.renderUpgrades(getUpgrades(), resources.inventory);
+  }
+};
+
+shelters.onEnter = () => {
+  hud.showShelterPanel(getUpgrades(), resources.inventory);
+};
+
+shelters.onExit = () => {
+  hud.hideShelterPanel();
 };
 
 combat.onKill = () => {
@@ -92,6 +197,9 @@ combat.onKill = () => {
 
 combat.onPlayerHit = (damage: number) => {
   if (screen !== 'playing') return;
+  // Safe in shelter — no damage
+  if (shelters.playerInShelter) return;
+
   player.takeDamage(damage);
   hud.updateHealth(player.health, player.maxHealth);
   hud.flashDamage();
@@ -102,8 +210,8 @@ combat.onPlayerHit = (damage: number) => {
 };
 
 // ---- Enemy Spawning ----
-const SPAWN_RADIUS_MIN = 12;
-const SPAWN_RADIUS_MAX = 25;
+const SPAWN_RADIUS_MIN = 14;
+const SPAWN_RADIUS_MAX = 30;
 const MAX_ENEMIES = 8;
 const SPAWN_INTERVAL = 4; // seconds
 let spawnTimer = 2; // first spawn sooner
@@ -143,13 +251,15 @@ function startGame(): void {
 
 function showGameOver(): void {
   screen = 'gameover';
+  hud.hideShelterPanel();
   gameoverStats.textContent = `Enemies defeated: ${kills}`;
   gameoverScreen.style.display = 'flex';
 }
 
 function resetGame(): void {
   // Reset player
-  player.health = player.maxHealth;
+  player.health = 100;
+  player.maxHealth = 100;
   player.group.position.set(0, 0, 0);
   player.group.rotation.set(0, 0, 0);
 
@@ -162,9 +272,21 @@ function resetGame(): void {
   }
   combat.enemies.length = 0;
   combat.arrows.length = 0;
+  combat.swordDamageBonus = 0;
+  combat.arrowDamageBonus = 0;
+
+  // Reset upgrades
+  swordDamageBonus = 0;
+  arrowDamageBonus = 0;
+  maxHealthBonus = 0;
+  healAvailable = true;
 
   // Reset resources
   resources.reset();
+
+  // Reset shelters
+  shelters.reset();
+  hud.hideShelterPanel();
 
   // Reset counters
   kills = 0;
@@ -186,7 +308,7 @@ function gameLoop(now: number): void {
   lastTime = now;
 
   if (screen === 'playing') {
-    // Spawn enemies
+    // Spawn enemies (not when player is in shelter)
     spawnTimer -= dt;
     if (spawnTimer <= 0 && combat.aliveEnemyCount < MAX_ENEMIES) {
       spawnEnemyNearPlayer();
@@ -195,8 +317,9 @@ function gameLoop(now: number): void {
 
     // Update
     player.update(input, dt);
-    combat.update(player, dt);
+    combat.update(player, dt, shelters);
     resources.update(player.group.position, dt);
+    shelters.update(player.group.position, dt);
   }
 
   cameraCtrl.update(player.group.position, dt);

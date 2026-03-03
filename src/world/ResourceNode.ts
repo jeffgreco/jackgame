@@ -121,7 +121,7 @@ export class ResourceSystem {
     const weights = [5, 4, 2, 1];
     const total = weights.reduce((a, b) => a + b, 0);
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 45; i++) {
       // Pick type by weight
       let r = Math.random() * total;
       let type: ResourceType = 'wood';
@@ -133,8 +133,8 @@ export class ResourceSystem {
       // Place avoiding center spawn area
       let x: number, z: number;
       do {
-        x = (Math.random() - 0.5) * 55;
-        z = (Math.random() - 0.5) * 55;
+        x = (Math.random() - 0.5) * 110;
+        z = (Math.random() - 0.5) * 110;
       } while (Math.abs(x) < 4 && Math.abs(z) < 4);
 
       const node = new ResourceNode(type, new THREE.Vector3(x, 0, z));

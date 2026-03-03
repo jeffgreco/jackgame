@@ -77,7 +77,7 @@ export class Enemy {
     this.mesh.position.copy(position);
   }
 
-  update(playerPos: THREE.Vector3, dt: number): { didAttack: boolean } {
+  update(playerPos: THREE.Vector3, dt: number, playerSafe = false): { didAttack: boolean } {
     if (this.isDead) return { didAttack: false };
 
     this.attackCooldown = Math.max(0, this.attackCooldown - dt);
@@ -88,7 +88,10 @@ export class Enemy {
 
     let didAttack = false;
 
-    if (dist > ATTACK_RANGE) {
+    if (playerSafe) {
+      // Player is sheltered — enemy idles / wanders slowly
+      this.bobPhase += dt * 3;
+    } else if (dist > ATTACK_RANGE) {
       // Move toward player
       const dir = toPlayer.normalize();
       this.mesh.position.addScaledVector(dir, ENEMY_SPEED * dt);
